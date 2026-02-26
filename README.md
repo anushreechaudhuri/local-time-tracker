@@ -18,6 +18,13 @@ Local macOS time tracker that prompts you every 30 minutes to log what you're wo
 - API cost tracking with alerts
 - CSV export of all data
 
+## What it looks like
+<img width="1776" height="1230" alt="timetracker-dashboard@2x" src="https://github.com/user-attachments/assets/18b0de9d-7886-423e-b17a-4c154fee9c53" />
+
+<img width="732" height="542" alt="timetracker-log@2x" src="https://github.com/user-attachments/assets/96ade455-a1db-4ae4-b287-5c39e09e1c67" />
+
+<img width="778" height="492" alt="timetracker-multitask@2x" src="https://github.com/user-attachments/assets/0db55bfa-4f21-497f-a90d-11f7d113260d" />
+
 ## Requirements
 
 - macOS (uses native AppKit/WebKit for the prompt panel)
