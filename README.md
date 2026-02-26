@@ -2,6 +2,28 @@
 
 Local macOS time tracker that prompts you every 30 minutes to log what you're working on. Uses GPT to auto-categorize entries into projects and tags from natural language input. Inspired by [Daily Time Tracking](https://dailytimetracking.com).
 
+## Screenshots
+
+**Prompt panel** -- appears every 30 minutes at the top-right of your screen:
+
+![Prompt panel](screenshots/prompt.png)
+
+**Dashboard** -- browse entries by day, week, or month with project/tag breakdowns:
+
+![Dashboard](screenshots/dashboard.png)
+
+**Multitask check-in** -- when working on 2 projects, a slider lets you split time:
+
+![Multitask](screenshots/multitask.png)
+
+**Break status** -- confirms your break with an undo option:
+
+![Break](screenshots/break-status.png)
+
+**Resume after idle** -- asks if you took a break and whether to continue or switch:
+
+![Resume](screenshots/resume.png)
+
 ## Features
 
 - Native macOS floating panel prompts every 30 minutes (or 15 minutes when multitasking)
@@ -34,7 +56,7 @@ Local macOS time tracker that prompts you every 30 minutes to log what you're wo
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/local-time-tracker.git
+git clone https://github.com/anushreechaudhuri/local-time-tracker.git
 cd local-time-tracker
 ./setup.sh
 ```
