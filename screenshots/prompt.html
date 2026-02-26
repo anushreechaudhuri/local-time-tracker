@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 16px; width: 380px; }
+h2 { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+.top-link { text-align: right; margin-bottom: 6px; font-size: 10px; color: #6B7FFF; }
+input[type="text"] { width: 100%; padding: 7px 10px; font-size: 13px; background: #222244; color: #e0e0e0; border: 1px solid #333; border-radius: 6px; outline: none; margin-bottom: 10px; }
+label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.chip { padding: 3px 9px; border-radius: 14px; font-size: 11px; border: 1px solid #444; background: #222244; color: #999; display: flex; align-items: center; gap: 4px; }
+.chip.sel { color: #fff; border-color: transparent; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.buttons { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+button { padding: 6px 16px; font-size: 12px; border: none; border-radius: 6px; }
+.btn-persist { background: #333; color: #ccc; }
+.btn-break { background: #FF9800; color: #fff; }
+.btn-log { background: #6B7FFF; color: #fff; }
+.add { font-size: 10px; color: #6B7FFF; margin-left: 4px; }
+</style></head><body>
+<div class="top-link">Dashboard &#8599;</div>
+<h2>What are you working on?</h2>
+<input type="text" value="refactoring the auth module">
+<label>Projects (select up to 2) <span class="add">+ new</span></label>
+<div class="chips">
+  <div class="chip sel" style="background:#4CAF50"><span class="dot" style="background:rgba(255,255,255,0.5)"></span>Work</div>
+  <div class="chip"><span class="dot" style="background:#FF9800"></span>Personal</div>
+  <div class="chip"><span class="dot" style="background:#9C27B0"></span>Side project</div>
+</div>
+<label>Tags <span class="add">+ new</span></label>
+<div class="chips">
+  <div class="chip sel" style="background:#1565C0;color:#fff">coding</div>
+  <div class="chip">writing</div>
+  <div class="chip">reading</div>
+  <div class="chip">communications</div>
+  <div class="chip sel" style="background:#FF9800;color:#fff">planning</div>
+  <div class="chip">creative</div>
+  <div class="chip">meeting</div>
+  <div class="chip">admin</div>
+</div>
+<div class="buttons">
+  <button class="btn-persist">Persist</button>
+  <button class="btn-break">Break</button>
+  <button class="btn-log">Log</button>
+</div>
+</body></html>

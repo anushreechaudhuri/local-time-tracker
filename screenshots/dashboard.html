@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; width: 900px; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #222244; border-bottom: 1px solid #2a2a4a; }
+.brand { font-weight: 600; font-size: 1.1rem; color: #6B7FFF; }
+.nav-links { display: flex; gap: 16px; font-size: 0.9rem; color: #888; }
+.nav-links .active { color: #e0e0e0; }
+main { max-width: 860px; margin: 0 auto; padding: 24px; }
+.date-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.date-nav h2 { font-size: 1.2rem; font-weight: 500; }
+.btn { padding: 4px 10px; font-size: 0.8rem; border: 1px solid #2a2a4a; background: #222244; color: #e0e0e0; border-radius: 8px; }
+.stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.stat { background: #222244; padding: 12px 16px; border-radius: 8px; min-width: 100px; }
+.stat-val { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.stat-label { font-size: 0.8rem; color: #888; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.tags-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.tag { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; color: #fff; font-weight: 500; }
+.entry { display: flex; align-items: center; gap: 16px; background: #222244; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+.entry-time { font-size: 0.85rem; color: #888; min-width: 100px; }
+.entry-body { flex: 1; }
+.entry-desc { font-size: 0.9rem; margin-bottom: 4px; }
+.entry-meta { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #888; }
+.entry-meta .tag { font-size: 0.7rem; padding: 2px 8px; }
+.btn-edit { font-size: 0.8rem; padding: 4px 10px; background: #222244; border: 1px solid #2a2a4a; color: #e0e0e0; border-radius: 8px; }
+.btn-del { font-size: 0.8rem; padding: 4px 10px; background: transparent; border: none; color: #F44336; }
+.tz { font-size: 0.75rem; color: #888; }
+</style></head><body>
+<nav>
+  <span class="brand">Time Tracker</span>
+  <div class="nav-links">
+    <span class="active">Day</span> <span>Week</span> <span>Month</span> <span>Settings</span>
+    <span class="tz">EST (New York)</span>
+  </div>
+</nav>
+<main>
+<div class="date-nav">
+  <span class="btn">&larr;</span>
+  <h2>Wednesday, February 26, 2026</h2>
+  <span class="btn">&rarr;</span>
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-val">5h 42m</div><div class="stat-label">Total</div></div>
+  <div class="stat"><div class="stat-val"><span class="dot" style="background:#4CAF50"></span> 3h 15m</div><div class="stat-label">Work</div></div>
+  <div class="stat"><div class="stat-val"><span class="dot" style="background:#FF9800"></span> 1h 20m</div><div class="stat-label">Personal</div></div>
+  <div class="stat"><div class="stat-val"><span class="dot" style="background:#9C27B0"></span> 47m</div><div class="stat-label">Side project</div></div>
+  <div class="stat"><div class="stat-val"><span class="dot" style="background:#9E9E9E"></span> 20m</div><div class="stat-label">Break</div></div>
+</div>
+<div class="tags-row">
+  <span class="tag" style="background:#1565C0">coding: 2h 30m</span>
+  <span class="tag" style="background:#FF9800">planning: 1h 10m</span>
+  <span class="tag" style="background:#E040FB">writing: 55m</span>
+  <span class="tag" style="background:#00BCD4">communications: 40m</span>
+  <span class="tag" style="background:#2E7D32">meeting: 27m</span>
+</div>
+<div class="entry">
+  <div class="entry-time">09:00 – 10:30</div>
+  <div class="entry-body">
+    <div class="entry-desc">Sprint planning and code review</div>
+    <div class="entry-meta"><span class="dot" style="background:#4CAF50"></span> Work <span class="tag" style="background:#FF9800">planning</span> <span class="tag" style="background:#2E7D32">meeting</span></div>
+  </div>
+  <div class="entry-actions"><button class="btn-edit">Edit</button><button class="btn-del">Del</button></div>
+</div>
+<div class="entry">
+  <div class="entry-time">10:30 – 12:45</div>
+  <div class="entry-body">
+    <div class="entry-desc">Refactoring auth module, fixing token refresh</div>
+    <div class="entry-meta"><span class="dot" style="background:#4CAF50"></span> Work <span class="tag" style="background:#1565C0">coding</span></div>
+  </div>
+  <div class="entry-actions"><button class="btn-edit">Edit</button><button class="btn-del">Del</button></div>
+</div>
+<div class="entry">
+  <div class="entry-time">12:45 – 13:05</div>
+  <div class="entry-body">
+    <div class="entry-desc">Break: lunch</div>
+    <div class="entry-meta"><span class="dot" style="background:#9E9E9E"></span> Break</div>
+  </div>
+  <div class="entry-actions"><button class="btn-edit">Edit</button><button class="btn-del">Del</button></div>
+</div>
+<div class="entry">
+  <div class="entry-time">13:05 – 14:20</div>
+  <div class="entry-body">
+    <div class="entry-desc">Writing blog post about API design patterns</div>
+    <div class="entry-meta"><span class="dot" style="background:#9C27B0"></span> Side project <span class="tag" style="background:#E040FB">writing</span> <span class="tag" style="background:#FF5722">creative</span></div>
+  </div>
+  <div class="entry-actions"><button class="btn-edit">Edit</button><button class="btn-del">Del</button></div>
+</div>
+<div class="entry">
+  <div class="entry-time">14:20 – 15:40</div>
+  <div class="entry-body">
+    <div class="entry-desc">Responding to emails, scheduling meetings</div>
+    <div class="entry-meta"><span class="dot" style="background:#FF9800"></span> Personal <span class="tag" style="background:#00BCD4">communications</span> <span class="tag" style="background:#9E9E9E">admin</span></div>
+  </div>
+  <div class="entry-actions"><button class="btn-edit">Edit</button><button class="btn-del">Del</button></div>
+</div>
+</main>
+</body></html>

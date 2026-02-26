@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 16px; width: 380px; }
+h2 { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+.box { background: #222244; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+.desc { font-size: 13px; margin-top: 3px; }
+.proj { font-size: 11px; color: #999; margin-top: 2px; }
+.check { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 8px; }
+.check input { accent-color: #6B7FFF; }
+.slider-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.slider-label { font-size: 11px; color: #ccc; min-width: 70px; }
+.slider-label.right { text-align: right; }
+input[type="range"] { flex: 1; accent-color: #6B7FFF; }
+.pct { font-size: 11px; color: #888; text-align: center; margin-bottom: 6px; }
+.buttons { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+button { padding: 6px 16px; font-size: 12px; border: none; border-radius: 6px; }
+.btn-stop { background: #F44336; color: #fff; }
+.btn-update { background: #6B7FFF; color: #fff; }
+</style></head><body>
+<h2>Multitasking check-in</h2>
+<div class="box">
+  <div class="desc">Sprint planning + writing documentation</div>
+  <div class="proj">Work + Side project</div>
+</div>
+<div class="check">
+  <input type="checkbox" checked> <span>Still multitasking?</span>
+</div>
+<div class="slider-row">
+  <span class="slider-label">Work</span>
+  <input type="range" min="0" max="100" value="35">
+  <span class="slider-label right">Side project</span>
+</div>
+<div class="pct">65% / 35%</div>
+<div class="buttons">
+  <button class="btn-stop">Stopped multitasking</button>
+  <button class="btn-update">Update</button>
+</div>
+</body></html>
