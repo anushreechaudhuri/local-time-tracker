@@ -80,6 +80,10 @@ Every 30 minutes, a native panel appears asking what you're working on. Type a n
 
 If you close the panel without responding, the app assumes you're continuing your previous task. If you're idle for 5+ minutes, it auto-pauses and asks what happened when you return.
 
+### A note on multitasking
+
+This tracker lets you select up to 2 projects at once. Multitasking isn't necessarily encouraged, but it recognizes the reality that most people are juggling multiple things at a time, especially in a world where you're delegating work to agents while doing something else. Rather than pretending you're only ever doing one thing, the tracker makes you mindful about how you're splitting your capacity and keeps you focused on two things at most. More context switching than that is difficult and unproductive, and the app will nudge you if it detects you're spreading across 3+ projects.
+
 ## Cloud dashboard (optional)
 
 To access the dashboard from any device:
