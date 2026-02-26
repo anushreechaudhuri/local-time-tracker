@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}{{ date_label }} — Time Tracker{% endblock %}
+
+{% block content %}
+<div class="date-nav">
+    <a href="/?date={{ prev_date }}&view={{ view }}" class="btn btn-sm">&larr;</a>
+    <h2>{{ date_label }}</h2>
+    <a href="/?date={{ next_date }}&view={{ view }}" class="btn btn-sm">&rarr;</a>
+    {% if date_str != today %}
+    <a href="/?view={{ view }}" class="btn btn-sm">Today</a>
+    {% endif %}
+    <input type="date" id="date-picker" value="{{ date_str }}"
+           onchange="window.location='/?date='+this.value+'&view={{ view }}'">
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_seconds|duration }}</div>
+        <div class="stat-label">Total</div>
+    </div>
+    {% for name, data in project_totals.items() %}
+    <div class="stat-card">
+        <div class="stat-value">
+            <span class="color-dot" style="background:{{ data.color }}"></span>
+            {{ data.seconds|duration }}
+        </div>
+        <div class="stat-label">{{ name }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if tag_totals %}
+<div class="tags-summary">
+    {% for name, data in tag_totals.items() %}
+    <span class="tag-pill" style="background:{{ data.color }}">{{ name }}: {{ data.seconds|duration }}</span>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Bulk actions bar (hidden until entries are selected) -->
+<div id="bulk-bar" style="display:none;background:var(--surface);padding:8px 12px;border-radius:var(--radius);margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span id="bulk-count" style="font-size:0.85rem">0 selected</span>
+    <select id="bulk-project" style="font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--surface2);border-radius:4px;padding:2px 6px">
+        <option value="">Set project...</option>
+        {% for p in projects %}
+        <option value="{{ p.id }}">{{ p.name }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-sm btn-primary" onclick="bulkSetProject()">Apply</button>
+    <span style="color:var(--surface2)">|</span>
+    {% for t in tags %}
+    <label style="font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:2px">
+        <input type="checkbox" class="bulk-tag" value="{{ t.id }}"> {{ t.name }}
+    </label>
+    {% endfor %}
+    <button class="btn btn-sm btn-primary" onclick="bulkSetTags()">Set tags</button>
+    <button class="btn btn-sm btn-danger" onclick="bulkDelete()" style="margin-left:auto">Delete selected</button>
+</div>
+
+<div class="entries-list">
+    {% for entry in entries %}
+    <div class="entry-card" data-id="{{ entry.id }}">
+        <input type="checkbox" class="entry-select" data-id="{{ entry.id }}"
+               onchange="updateBulkBar()" style="accent-color:var(--accent);margin-right:4px">
+        <div class="entry-time">
+            <span class="utc-time" data-utc="{{ entry.start_time }}">{{ entry.start_time|time_only }}</span>
+            <span class="time-sep">–</span>
+            <span class="utc-time" data-utc="{{ entry.end_time or '' }}">{{ entry.end_time|time_only }}</span>
+        </div>
+        <div class="entry-body">
+            <div class="entry-desc">{{ entry.description or "No description" }}</div>
+            <div class="entry-meta">
+                <span class="color-dot" style="background:{{ entry.project_color or '#6B7FFF' }}"></span>
+                <span>{{ entry.project_name or "Uncategorized" }}</span>
+                {% for tag in entry.tags %}
+                <span class="tag-pill small" style="background:{{ tag.color }}">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="entry-actions">
+            <button class="btn btn-sm" onclick="editEntry({{ entry.id }})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteEntry({{ entry.id }})">Del</button>
+        </div>
+    </div>
+    {% else %}
+    <p class="empty-state">No entries for this period.</p>
+    {% endfor %}
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Edit Entry</h3>
+        <form id="edit-form">
+            <input type="hidden" id="edit-id">
+            <label>Description
+                <input type="text" id="edit-desc">
+            </label>
+            <label>Project
+                <select id="edit-project">
+                    {% for p in projects %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Tags
+                <div id="edit-tags" class="tag-checkboxes">
+                    {% for t in tags %}
+                    <label class="tag-check">
+                        <input type="checkbox" value="{{ t.id }}" data-color="{{ t.color }}">
+                        <span class="tag-pill small" style="background:{{ t.color }}">{{ t.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </label>
+            <div class="time-inputs">
+                <label>Start <input type="datetime-local" id="edit-start"></label>
+                <label>End <input type="datetime-local" id="edit-end"></label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Bulk edit
+function getSelectedIds() {
+    return [...document.querySelectorAll('.entry-select:checked')].map(cb => cb.dataset.id);
+}
+
+function updateBulkBar() {
+    const ids = getSelectedIds();
+    const bar = document.getElementById('bulk-bar');
+    bar.style.display = ids.length > 0 ? 'flex' : 'none';
+    document.getElementById('bulk-count').textContent = ids.length + ' selected';
+}
+
+async function bulkSetProject() {
+    const ids = getSelectedIds();
+    const pid = document.getElementById('bulk-project').value;
+    if (!pid || !ids.length) return;
+    await Promise.all(ids.map(id =>
+        fetch('/api/entries/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({project_id: parseInt(pid)}),
+        })
+    ));
+    location.reload();
+}
+
+async function bulkSetTags() {
+    const ids = getSelectedIds();
+    const tagIds = [...document.querySelectorAll('.bulk-tag:checked')].map(cb => parseInt(cb.value));
+    if (!ids.length) return;
+    await Promise.all(ids.map(id =>
+        fetch('/api/entries/' + id, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({tag_ids: tagIds}),
+        })
+    ));
+    location.reload();
+}
+
+async function bulkDelete() {
+    const ids = getSelectedIds();
+    if (!ids.length) return;
+    await Promise.all(ids.map(id => fetch('/api/entries/' + id, {method: 'DELETE'})));
+    location.reload();
+}
+</script>
+{% endblock %}

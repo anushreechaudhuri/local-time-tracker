@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Settings — Time Tracker{% endblock %}
+
+{% block content %}
+<h2>Settings</h2>
+
+<section class="settings-section">
+    <h3>Export</h3>
+    <a href="/api/export/csv" class="btn btn-primary" download>Download CSV (all data)</a>
+</section>
+
+<section class="settings-section">
+    <h3>API Costs</h3>
+    <div class="cost-summary">
+        <p>This month: <strong>${{ "%.4f"|format(monthly_cost) }}</strong> / ${{ "%.2f"|format(cost_limit) }} limit</p>
+        <div class="cost-bar">
+            <div class="cost-fill" style="width: {{ [monthly_cost / cost_limit * 100, 100]|min }}%"></div>
+        </div>
+    </div>
+    {% if api_usage %}
+    <table class="data-table">
+        <thead><tr><th>Date</th><th>Input tokens</th><th>Output tokens</th><th>Cost</th></tr></thead>
+        <tbody>
+        {% for row in api_usage %}
+        <tr>
+            <td>{{ row.day }}</td>
+            <td>{{ row.input_tok }}</td>
+            <td>{{ row.output_tok }}</td>
+            <td>${{ "%.4f"|format(row.cost) }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</section>
+
+<section class="settings-section">
+    <h3>Projects</h3>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">Add descriptions to help the AI categorize entries more accurately.</p>
+    <div class="items-grid" style="flex-direction:column">
+        {% for p in projects %}
+        <div class="item-card {% if p.is_archived %}archived{% endif %}" style="flex-direction:column;align-items:stretch;width:100%">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <span class="color-dot" style="background:{{ p.color }}"></span>
+                <strong>{{ p.name }}</strong>
+                {% if p.is_default %}<span class="badge">default</span>{% endif %}
+                {% if not p.is_default %}
+                <button class="btn btn-sm btn-danger" onclick="deleteProject({{ p.id }})" style="margin-left:auto">Delete</button>
+                {% endif %}
+            </div>
+            <input type="text" value="{{ p.description or '' }}" placeholder="Description for AI context (e.g. 'AI alignment research project')"
+                   onchange="updateProject({{ p.id }}, this.value)"
+                   style="width:100%;padding:4px 8px;font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--surface2);border-radius:4px">
+        </div>
+        {% endfor %}
+    </div>
+    <form class="add-form" onsubmit="addProject(event)" style="margin-top:12px">
+        <input type="text" id="new-project-name" placeholder="New project name" required>
+        <input type="color" id="new-project-color" value="#6B7FFF">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+</section>
+
+<section class="settings-section">
+    <h3>Tags</h3>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">Add descriptions to help the AI categorize entries more accurately.</p>
+    <div class="items-grid" style="flex-direction:column">
+        {% for t in tags %}
+        <div class="item-card {% if t.is_archived %}archived{% endif %}" style="flex-direction:column;align-items:stretch;width:100%">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <span class="color-dot" style="background:{{ t.color }}"></span>
+                <strong>{{ t.name }}</strong>
+                <button class="btn btn-sm btn-danger" onclick="deleteTag({{ t.id }})" style="margin-left:auto">Delete</button>
+            </div>
+            <input type="text" value="{{ t.description or '' }}" placeholder="Description (e.g. 'emails, WhatsApp, Slack messages')"
+                   onchange="updateTag({{ t.id }}, this.value)"
+                   style="width:100%;padding:4px 8px;font-size:0.8rem;background:var(--bg);color:var(--text);border:1px solid var(--surface2);border-radius:4px">
+        </div>
+        {% endfor %}
+    </div>
+    <form class="add-form" onsubmit="addTag(event)" style="margin-top:12px">
+        <input type="text" id="new-tag-name" placeholder="New tag name" required>
+        <input type="color" id="new-tag-color" value="#888888">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateProject(id, desc) {
+    fetch('/api/projects/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({description: desc}),
+    });
+}
+function updateTag(id, desc) {
+    fetch('/api/tags/' + id, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({description: desc}),
+    });
+}
+function deleteProject(id) {
+    if (!confirm('Delete this project? Entries will be reassigned.')) return;
+    fetch('/api/projects/' + id, {method: 'DELETE'}).then(() => location.reload());
+}
+function deleteTag(id) {
+    if (!confirm('Delete this tag?')) return;
+    fetch('/api/tags/' + id, {method: 'DELETE'}).then(() => location.reload());
+}
+</script>
+{% endblock %}

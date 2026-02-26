@@ -1,0 +1,79 @@
+{
+  "name": "Time Tracker Weekly Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtDay": 0,
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Weekly Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:5123/api/summary/weekly",
+        "options": {}
+      },
+      "id": "http-request",
+      "name": "Fetch Weekly Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst projectRows = Object.entries(data.by_project || {}).map(([name, hours]) => `<tr><td>${name}</td><td>${hours}h</td></tr>`).join('');\nconst tagRows = Object.entries(data.by_tag || {}).map(([name, hours]) => `<tr><td>${name}</td><td>${hours}h</td></tr>`).join('');\nconst dayRows = Object.entries(data.by_day || {}).map(([day, hours]) => `<tr><td>${day}</td><td>${hours}h</td></tr>`).join('');\n\nconst html = `\n<h2>Weekly Time Tracking Summary</h2>\n<p>${data.start_date} to ${data.end_date}</p>\n<p><strong>Total: ${data.total_hours}h</strong></p>\n\n<h3>By Project</h3>\n<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse\">${projectRows}</table>\n\n<h3>By Tag</h3>\n<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse\">${tagRows}</table>\n\n<h3>By Day</h3>\n<table border=\"1\" cellpadding=\"6\" style=\"border-collapse:collapse\">${dayRows}</table>\n`;\n\nreturn [{ json: { subject: `Time Tracking: ${data.total_hours}h (${data.start_date} to ${data.end_date})`, html } }];"
+      },
+      "id": "format-email",
+      "name": "Format Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.html }}"
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [860, 300],
+      "credentials": {
+        "smtp": {
+          "id": "CONFIGURE_ME",
+          "name": "Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Weekly Schedule": {
+      "main": [
+        [{ "node": "Fetch Weekly Summary", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Weekly Summary": {
+      "main": [
+        [{ "node": "Format Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format Email": {
+      "main": [
+        [{ "node": "Send Email", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

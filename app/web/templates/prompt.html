@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Time Tracker</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 16px;
+}
+h2 { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; }
+input[type="text"] {
+    width: 100%; padding: 7px 10px; font-size: 13px;
+    background: #222244; color: #e0e0e0; border: 1px solid #333;
+    border-radius: 6px; outline: none; margin-bottom: 10px;
+}
+input[type="text"]:focus { border-color: #6B7FFF; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.chip {
+    padding: 3px 9px; border-radius: 14px; font-size: 11px; cursor: pointer;
+    border: 1px solid #444; background: #222244; color: #999;
+    transition: all 0.15s; user-select: none; display: flex; align-items: center; gap: 4px;
+}
+.chip.selected { background: var(--color, #6B7FFF); color: #fff; border-color: transparent; }
+.chip:hover { border-color: #6B7FFF; }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color, #6B7FFF); }
+.chip.selected .dot { background: rgba(255,255,255,0.5); }
+.add-link { font-size: 10px; color: #6B7FFF; cursor: pointer; margin-left: 4px; }
+.add-link:hover { text-decoration: underline; }
+.inline-add {
+    display: flex; gap: 4px; margin-bottom: 8px;
+}
+.inline-add input {
+    flex: 1; padding: 4px 8px; font-size: 11px;
+    background: #222244; color: #e0e0e0; border: 1px solid #6B7FFF;
+    border-radius: 6px; outline: none;
+}
+.inline-add button {
+    padding: 4px 10px; font-size: 11px; background: #6B7FFF; color: #fff;
+    border: none; border-radius: 6px; cursor: pointer;
+}
+.inline-add .cancel-btn { background: #333; color: #888; }
+.buttons { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+button {
+    padding: 6px 16px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;
+}
+.btn-same { background: #333; color: #ccc; }
+.btn-same:hover { background: #444; }
+.btn-break { background: #FF9800; color: #fff; }
+.btn-break:hover { background: #e68a00; }
+.btn-log { background: #6B7FFF; color: #fff; }
+.btn-log:hover { background: #5a6ee0; }
+.btn-stop { background: #F44336; color: #fff; }
+.btn-stop:hover { background: #d32f2f; }
+.btn-skip { background: #333; color: #999; }
+.btn-skip:hover { background: #444; }
+.warning { background: #4a3000; color: #ffb74d; padding: 6px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 10px; }
+.resume-box { background: #222244; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+.resume-desc { font-size: 13px; margin-top: 3px; }
+.resume-proj { font-size: 11px; color: #999; margin-top: 2px; }
+.slider-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.slider-label { font-size: 11px; color: #ccc; min-width: 60px; }
+.slider-label.right { text-align: right; }
+input[type="range"] { flex: 1; accent-color: #6B7FFF; height: 6px; }
+.split-pct { font-size: 11px; color: #888; text-align: center; margin-bottom: 6px; }
+.mt-check { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 8px; }
+.mt-check input { accent-color: #6B7FFF; }
+.hidden { display: none !important; }
+.status-view {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    background: #1a1a2e;
+}
+.status-icon { font-size: 28px; }
+.status-text { font-size: 13px; color: #77DD77; }
+.status-text.break { color: #FF9800; }
+.ctx-menu {
+    position: fixed; background: #222244; border: 1px solid #444;
+    border-radius: 6px; padding: 4px 0; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.ctx-menu div { padding: 5px 14px; font-size: 12px; cursor: pointer; color: #F44336; }
+.ctx-menu div:hover { background: #333; }
+/* Break input */
+.break-row {
+    display: flex; gap: 6px; align-items: center; margin-top: 8px;
+}
+.break-row input {
+    flex: 1; padding: 5px 8px; font-size: 12px;
+    background: #222244; color: #e0e0e0; border: 1px solid #333;
+    border-radius: 6px; outline: none;
+}
+.break-row input:focus { border-color: #FF9800; }
+.break-row button {
+    padding: 5px 12px; font-size: 11px; background: #FF9800; color: #fff;
+    border: none; border-radius: 6px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-view" class="status-view">
+    <div class="status-icon" style="animation:pulse 1.2s ease-in-out infinite">&#9201;</div>
+    <div style="font-size:13px;color:#888">Loading...</div>
+</div>
+<style>@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }</style>
+
+<!-- Form -->
+<div id="form-view" style="display:none">
+
+<div style="text-align:right;margin-bottom:6px">
+    <a href="#" onclick="openDashboard();return false"
+       style="font-size:10px;color:#6B7FFF;text-decoration:none">Dashboard &#8599;</a>
+</div>
+
+{% if mode == 'resume' %}
+    <h2>Welcome back!</h2>
+    <div class="resume-box">
+        <div style="font-size:11px;color:#888">You were working on:</div>
+        <div class="resume-desc">{{ last_desc }}</div>
+        <div class="resume-proj">{{ last_project }}</div>
+    </div>
+    <div class="mt-check" style="margin-top:8px">
+        <input type="checkbox" id="was-break">
+        <span style="font-size:12px">Did you take a break?</span>
+    </div>
+    <div class="buttons">
+        <button class="btn-skip" onclick="submitAction('new')">New Task</button>
+        <button class="btn-log" onclick="submitResume()">Continue</button>
+    </div>
+
+{% elif mode == 'multitask' %}
+    <h2>Multitasking check-in</h2>
+    <div class="resume-box">
+        <div class="resume-desc">{{ mt_desc }}</div>
+        <div class="resume-proj">{{ mt_project_a }} + {{ mt_project_b }}</div>
+    </div>
+    <div class="mt-check">
+        <input type="checkbox" id="still-mt" checked onchange="toggleSlider()">
+        <span>Still multitasking?</span>
+    </div>
+    <div id="slider-section">
+        <div class="slider-row">
+            <span class="slider-label">{{ mt_project_a }}</span>
+            <input type="range" id="split-slider" min="0" max="100"
+                   value="{{ mt_split or 50 }}" oninput="updateSplitLabel()">
+            <span class="slider-label right">{{ mt_project_b }}</span>
+        </div>
+        <div class="split-pct" id="split-label">50% / 50%</div>
+    </div>
+    <div class="buttons">
+        <button class="btn-stop" onclick="submitAction('stopped')">Stopped multitasking</button>
+        <button class="btn-log" onclick="submitMultitask()">Update</button>
+    </div>
+
+{% else %}
+    <h2>What are you working on?</h2>
+    <input type="text" id="desc" placeholder="e.g. writing AI safety paper..."
+           value="{{ ai_desc or '' }}" autofocus>
+
+    {% if multitask_warning %}
+    <div class="warning">Focus on 2 projects max! Showing the top 2 matches.</div>
+    {% endif %}
+
+    <label>Projects (select up to 2) <span class="add-link" onclick="showAddProject()">+ new</span></label>
+    <div id="add-project-row" class="inline-add hidden">
+        <input type="text" id="new-project-name" placeholder="Project name...">
+        <button onclick="doAddProject()">Add</button>
+        <button class="cancel-btn" onclick="hideAddProject()">X</button>
+    </div>
+    <div class="chips" id="project-chips">
+    {% for p in projects %}{% if not p.is_default %}
+        <div class="chip {% if p.name in ai_projects %}selected{% endif %}"
+             data-name="{{ p.name }}" data-id="{{ p.id }}"
+             style="--color: {{ p.color }}"
+             onclick="toggleProject(this)"
+             oncontextmenu="showProjectMenu(event, '{{ p.name }}', {{ p.id }})">
+            <span class="dot"></span>{{ p.name }}
+        </div>
+    {% endif %}{% endfor %}
+    </div>
+
+    <label>Tags <span class="add-link" onclick="showAddTag()">+ new</span></label>
+    <div id="add-tag-row" class="inline-add hidden">
+        <input type="text" id="new-tag-name" placeholder="Tag name...">
+        <button onclick="doAddTag()">Add</button>
+        <button class="cancel-btn" onclick="hideAddTag()">X</button>
+    </div>
+    <div class="chips" id="tag-chips">
+    {% for t in tags %}
+        <div class="chip {% if t.name in ai_tags %}selected{% endif %}"
+             data-name="{{ t.name }}" data-id="{{ t.id }}"
+             style="--color: {{ t.color }}"
+             onclick="this.classList.toggle('selected')"
+             oncontextmenu="showTagMenu(event, '{{ t.name }}', {{ t.id }})">
+            {{ t.name }}
+        </div>
+    {% endfor %}
+    </div>
+
+    <div class="buttons">
+        {% if has_previous %}
+        <button class="btn-same" onclick="submitAction('same')">Persist</button>
+        {% else %}
+        <button class="btn-same" disabled style="opacity:0.3;cursor:default">Persist</button>
+        {% endif %}
+        <button class="btn-break" onclick="toggleBreakInput()">Break</button>
+        <button class="btn-log" onclick="submitLog()">Log</button>
+    </div>
+
+    <div id="break-row" class="break-row hidden">
+        <input type="text" id="break-input" placeholder="e.g. 30 mins, 1 hour, lunch...">
+        <button onclick="submitBreak()">Start break</button>
+    </div>
+{% endif %}
+
+</div>
+
+<!-- Status screen (after submit) -->
+<div id="status-view" class="status-view hidden">
+    <div class="status-icon" id="status-icon">&#10003;</div>
+    <div class="status-text" id="status-text">Logged!</div>
+    <button id="undo-btn" onclick="undoLastAction()"
+            style="margin-top:12px;padding:5px 16px;font-size:11px;background:#333;color:#ccc;border:none;border-radius:6px;cursor:pointer">
+        Undo
+    </button>
+</div>
+
+<div id="ctx-menu" class="ctx-menu hidden"></div>
+
+<script>
+// Hide loading, show form
+document.getElementById('loading-view').style.display = 'none';
+document.getElementById('form-view').style.display = 'block';
+
+const token = "{{ token }}";
+const projectOrder = [];
+
+// Selections persist when editing text — user explicitly picks projects/tags
+
+document.getElementById('desc')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitLog();
+});
+
+// Init pre-selected projects
+document.querySelectorAll('#project-chips .chip.selected').forEach(el => {
+    projectOrder.push(el.dataset.name);
+});
+
+function toggleProject(el) {
+    const name = el.dataset.name;
+    if (el.classList.contains('selected')) {
+        el.classList.remove('selected');
+        const idx = projectOrder.indexOf(name);
+        if (idx >= 0) projectOrder.splice(idx, 1);
+    } else {
+        if (projectOrder.length >= 2) {
+            const oldest = projectOrder.shift();
+            document.querySelector('#project-chips .chip[data-name="' + oldest + '"]')?.classList.remove('selected');
+        }
+        el.classList.add('selected');
+        projectOrder.push(name);
+    }
+}
+
+function submitLog() {
+    const desc = document.getElementById('desc')?.value.trim();
+    if (!desc) { document.getElementById('desc')?.focus(); return; }
+    const projects = [...document.querySelectorAll('#project-chips .chip.selected')].map(el => el.dataset.name);
+    const tags = [...document.querySelectorAll('#tag-chips .chip.selected')].map(el => el.dataset.name);
+    send({ action: 'log', description: desc, projects: projects, tags: tags }, 'Logged!', '&#10003;');
+}
+
+function submitAction(action) {
+    const labels = { same: 'Continuing', 'continue': 'Continuing', 'new': 'Starting new task...', stopped: 'Stopped multitasking' };
+    const icons = { same: '&#9654;', 'continue': '&#9654;', 'new': '&#128221;', stopped: '&#9724;' };
+    send({ action: action }, labels[action] || 'Done', icons[action] || '&#10003;');
+}
+
+function submitResume() {
+    const wasBreak = document.getElementById('was-break')?.checked || false;
+    send({ action: 'continue', was_break: wasBreak }, 'Continuing', '&#9654;');
+}
+
+function toggleBreakInput() {
+    const row = document.getElementById('break-row');
+    row.classList.toggle('hidden');
+    if (!row.classList.contains('hidden')) {
+        document.getElementById('break-input').focus();
+    }
+}
+
+function submitBreak() {
+    const text = document.getElementById('break-input')?.value.trim() || '30 mins';
+    send({ action: 'break', break_duration: text }, 'On break: ' + text, '&#9749;', true);
+}
+
+function submitMultitask() {
+    const still = document.getElementById('still-mt')?.checked;
+    const rawVal = parseInt(document.getElementById('split-slider')?.value || '50');
+    // Invert: slider left (low value) = more time on left project (high %)
+    const split = 100 - rawVal;
+    send({ action: 'multitask_update', still_multitasking: still, split: split }, 'Updated', '&#10003;');
+}
+
+let closeTimer = null;
+
+function send(data, statusLabel, statusIcon, isBreak) {
+    fetch('/api/prompt/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, token: token, log_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+    }).then(() => {
+        document.getElementById('form-view').style.display = 'none';
+        const sv = document.getElementById('status-view');
+        sv.classList.remove('hidden');
+        document.getElementById('status-icon').innerHTML = statusIcon || '&#10003;';
+        const st = document.getElementById('status-text');
+        st.textContent = statusLabel || 'Done';
+        if (isBreak) st.classList.add('break');
+        // Give 1.5 seconds to click Undo before auto-closing
+        closeTimer = setTimeout(() => {
+            try { window.webkit.messageHandlers.close.postMessage('done'); } catch(e) {}
+            try { window.close(); } catch(e) {}
+        }, 1500);
+    });
+}
+
+function undoLastAction() {
+    if (closeTimer) clearTimeout(closeTimer);
+    fetch('/api/prompt/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'undo', token: token }),
+    }).then(() => {
+        // Go back to form
+        document.getElementById('status-view').classList.add('hidden');
+        document.getElementById('form-view').style.display = 'block';
+    });
+}
+
+function openDashboard() {
+    try { window.webkit.messageHandlers.openurl.postMessage('openurl:http://127.0.0.1:5123/'); } catch(e) {
+        window.open('http://127.0.0.1:5123/', '_blank');
+    }
+}
+
+// Slider
+function updateSplitLabel() {
+    const v = document.getElementById('split-slider')?.value || 50;
+    // Slider left = more time on left project, right = more on right project
+    // But HTML range 0=left, 100=right, so invert: left project gets (100-v)%
+    document.getElementById('split-label').textContent = (100 - v) + '% / ' + v + '%';
+}
+function toggleSlider() {
+    const checked = document.getElementById('still-mt')?.checked;
+    document.getElementById('slider-section').style.display = checked ? 'block' : 'none';
+}
+if (document.getElementById('split-slider')) updateSplitLabel();
+
+// Tag context menu
+function showTagMenu(e, name, id) {
+    e.preventDefault();
+    const menu = document.getElementById('ctx-menu');
+    menu.innerHTML = '<div onclick="deleteTag(\'' + name.replace(/'/g, "\\'") + '\', ' + id + ')">Delete "' + name + '"</div>';
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.classList.remove('hidden');
+}
+document.addEventListener('click', () => document.getElementById('ctx-menu')?.classList.add('hidden'));
+
+function deleteTag(name, id) {
+    fetch('/api/tags/' + id, { method: 'DELETE' }).then(() => {
+        document.querySelector('#tag-chips .chip[data-name="' + name + '"]')?.remove();
+    });
+    document.getElementById('ctx-menu')?.classList.add('hidden');
+}
+
+function showProjectMenu(e, name, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    const menu = document.getElementById('ctx-menu');
+    menu.innerHTML = '<div onclick="deleteProject(\'' + name.replace(/'/g, "\\'") + '\', ' + id + ')">Delete "' + name + '"</div>';
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.classList.remove('hidden');
+}
+
+function deleteProject(name, id) {
+    fetch('/api/projects/' + id, { method: 'DELETE' }).then(() => {
+        const chip = document.querySelector('#project-chips .chip[data-name="' + name + '"]');
+        if (chip) {
+            chip.classList.remove('selected');
+            const idx = projectOrder.indexOf(name);
+            if (idx >= 0) projectOrder.splice(idx, 1);
+            chip.remove();
+        }
+    });
+    document.getElementById('ctx-menu')?.classList.add('hidden');
+}
+
+// Inline add project
+function showAddProject() {
+    document.getElementById('add-project-row').classList.remove('hidden');
+    document.getElementById('new-project-name').focus();
+}
+function hideAddProject() {
+    document.getElementById('add-project-row').classList.add('hidden');
+    document.getElementById('new-project-name').value = '';
+}
+function doAddProject() {
+    const name = document.getElementById('new-project-name').value.trim();
+    if (!name) return;
+    fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name }),
+    }).then(r => r.json()).then(p => {
+        const grid = document.getElementById('project-chips');
+        const chip = document.createElement('div');
+        chip.className = 'chip selected';
+        chip.dataset.name = name;
+        chip.dataset.id = String(p.id);
+        chip.style.cssText = '--color: #6B7FFF';
+        chip.innerHTML = '<span class="dot"></span>' + name;
+        chip.addEventListener('click', function() { toggleProject(chip); });
+        grid.appendChild(chip);
+        // Enforce max 2
+        if (projectOrder.length >= 2) {
+            const oldest = projectOrder.shift();
+            const el = grid.querySelector('.chip[data-name="' + oldest + '"]');
+            if (el) el.classList.remove('selected');
+        }
+        projectOrder.push(name);
+        chip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        hideAddProject();
+    }).catch(err => {
+        console.error('Failed to add project:', err);
+    });
+}
+document.getElementById('new-project-name')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doAddProject();
+    if (e.key === 'Escape') hideAddProject();
+});
+
+// Inline add tag
+function showAddTag() {
+    document.getElementById('add-tag-row').classList.remove('hidden');
+    document.getElementById('new-tag-name').focus();
+}
+function hideAddTag() {
+    document.getElementById('add-tag-row').classList.add('hidden');
+    document.getElementById('new-tag-name').value = '';
+}
+function doAddTag() {
+    const name = document.getElementById('new-tag-name').value.trim();
+    if (!name) return;
+    fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name }),
+    }).then(r => r.json()).then(t => {
+        const grid = document.getElementById('tag-chips');
+        const chip = document.createElement('div');
+        chip.className = 'chip selected';
+        chip.dataset.name = name;
+        chip.dataset.id = String(t.id);
+        chip.textContent = name;
+        chip.addEventListener('click', function() { chip.classList.toggle('selected'); });
+        grid.appendChild(chip);
+        chip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        hideAddTag();
+    }).catch(err => {
+        console.error('Failed to add tag:', err);
+    });
+}
+document.getElementById('new-tag-name')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doAddTag();
+    if (e.key === 'Escape') hideAddTag();
+});
+document.getElementById('break-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitBreak();
+});
+</script>
+</body>
+</html>
